@@ -174,9 +174,8 @@ int* grayCode(int n, int* returnSize)
     int* ret = (int*)malloc(ret_size * sizeof(int));
     
     for (int i = 0; i < ret_size; i++) 
-    {
         ret[i] = (i >> 1) ^ i;
-    }
+    
     *returnSize = ret_size;
     return ret;
 }
@@ -400,3 +399,4 @@ int longestValidParentheses(char * s)
 }
 ```
 时间复杂度 $O(n)$，空间复杂度 $O(1)$.
+
