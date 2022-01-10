@@ -468,3 +468,5 @@ class Solution:
 
         return temp_str == num
 ```
+
+时间复杂度 $O(n^3)$，空间复杂度 $O(n)$.
