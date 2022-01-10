@@ -400,3 +400,71 @@ int longestValidParentheses(char * s)
 ```
 时间复杂度 $O(n)$，空间复杂度 $O(1)$.
 
+## 306. 累加数
+### 题目原文
+难度：<font color = 'orange'>中等</font>
+
+**累加数** 是一个字符串，组成它的数字可以形成累加序列。
+
+一个有效的 **累加序列** 必须 **至少** 包含 3 个数。除了最开始的两个数以外，字符串中的其他数都等于它之前两个数相加的和。
+
+给你一个只包含数字 `'0'-'9'` 的字符串，编写一个算法来判断给定输入是否是 累加数 。如果是，返回 `true` ；否则，返回 `false` 。
+
+**说明**：累加序列里的数 **不会** 以 `0` 开头，所以不会出现 `1`, `2`, `03` 或者 `1`, `02`, `3` 的情况。
+
+**示例 1：**
+```
+输入："112358"
+输出：true 
+解释：累加序列为: 1, 1, 2, 3, 5, 8 。1 + 1 = 2, 1 + 2 = 3, 2 + 3 = 5, 3 + 5 = 8
+```
+**示例 2：**
+```
+输入："199100199"
+输出：true 
+解释：累加序列为: 1, 99, 100, 199。1 + 99 = 100, 99 + 100 = 199
+```
+
+**提示：**
+
+* 1 <= num.length <= 35
+* num 仅由数字（0 - 9）组成
+
+### 我的解（看了官方解的提示后写的）
+
+累加序列，由开始两个数字确定。而数字的长度不确定，因此要枚举前两个数字的组合。
+
+记第一个数字的下标是 [0 : first_end]，第二个数字的下标是 [second_start : second_end]，由于 second_start = first_end + 1，因此只要枚举 second_start 和 second_end 和组合即可。
+
+然后因为数字可能超过 `unsigend long long` 的大小，故要一个高精度大数运算的模块，（果断用 Python）
+
+综上得代码：
+
+```python
+class Solution:
+    def isAdditiveNumber(self, num : str) -> bool:
+        length = len(num)
+        for second_start in range(1, length - 1):
+            for second_end in range(second_start + 1, length):
+                first = int(num[:second_start])
+                second = int(num[second_start : second_end])
+
+                if self.if_valid(first, second, num):
+                    return True
+        
+        return False
+
+
+    def if_valid(self, first : int, second : int, num : str) -> bool:
+        length = len(num)
+        temp_str = str(first) + str(second)
+        
+        while len(temp_str) < length:
+            thrid = first + second
+            temp_str += str(thrid)
+
+            first = second
+            second = thrid
+
+        return temp_str == num
+```
