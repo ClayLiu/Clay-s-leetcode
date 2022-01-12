@@ -579,3 +579,315 @@ bool increasingTriplet(int* nums, int numsSize)
 ```
 
 时间复杂度 $O(n)$，空间复杂度 $O(1)$.
+
+## 51. N 皇后
+### 题目原文
+
+难度：<font color = 'red'> 困难 </font>
+
+**n 皇后问题**研究的是如何将 `n` 个皇后放置在 `n × n` 的棋盘上，并且使皇后彼此之间不能相互攻击。
+
+给你一个整数 `n` ，返回所有不同的**n 皇后问题** 的解决方案。
+
+每一种解法包含一个不同的n 皇后问题 的棋子放置方案，该方案中 `'Q'` 和 `'.'` 分别代表了皇后和空位。
+
+**示例 1：**
+
+![](https://assets.leetcode.com/uploads/2020/11/13/queens.jpg)
+```
+输入：n = 4
+输出：[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
+解释：如上图所示，4 皇后问题存在两个不同的解法。
+```
+
+**示例 2：**
+
+```输入：n = 1
+输出：[["Q"]]
+```
+
+**提示：**
+
+* 1 <= n <= 9
+
+### 我的解：
+
+类似解数独，疯狂 dfs。
+
+```python
+class Solution:
+    def valid(self, t : List[str], row : int, col : int, n : int) -> bool:    
+        queen_count = 0
+        for i in range(n):
+            queen_count += t[i][col] == 'Q'
+        
+        if queen_count > 1:
+            return False
+        
+        queen_count = 0
+
+        for j in range(n):
+            queen_count += t[row][j] == 'Q'
+
+        if queen_count > 1:
+            return False
+        
+        queen_count = 0
+
+        i = 0
+        while row + i < n and col + i < n:
+            queen_count += t[row + i][col + i] == 'Q'
+            i += 1
+
+        i = 1
+        while row - i >= 0 and col - i >= 0:
+            queen_count += t[row - i][col - i] == 'Q'
+            i += 1
+
+        if queen_count > 1:
+            return False
+        
+        queen_count = 0
+        
+        i = 0
+        while row - i >= 0 and col + i < n:
+            queen_count += t[row - i][col + i] == 'Q'
+            i += 1
+
+        i = 1
+        while row + i < n and col - i >= 0:
+            queen_count += t[row + i][col - i] == 'Q'
+            i += 1
+
+        if queen_count > 1:
+            return False
+
+        return True
+
+
+    def solveNQueens(self, n : int) -> List[List[str]]:
+        out = []
+        t = [['.'] * n for _ in range(n)]
+
+        def dfs(depth : int, queen_count : int):
+            if queen_count == n:
+                # print(t)
+                out.append([''.join(s) for s in t])
+                return
+
+            if depth == n * n:
+                return
+
+            i = depth // n
+            j = depth % n
+
+            for place in ['Q', '.']:
+                t[i][j] = place
+            
+                if self.valid(t, i, j, n):
+                    dfs(depth + 1, queen_count + (place == 'Q'))
+
+        dfs(0, 0)
+        return out
+```
+
+很烦的是，这样做超时了。
+
+分析：dfs 是 $O(n!)$ 的，然而判断是否有效函数 `valid`，是 $O(n)$ 的。因此整体是 $O(n\times n!)$.
+
+### 看了一次提示的解
+
+看了一次官方题解，看到提示是
+
+1. 同一主对角线的元素，`行下标` 与 `列下标` 之差一样。
+2. 同一副对角线的元素，`行下标` 与 `列下标` 之和一样。
+3. 同一行、同一列则很容易判断。上面做法 $O(n)$ 没有必要。
+
+综上得代码
+
+```python
+class Solution:
+    def valid(self, curr_dict : dict, i : int, j : int) -> bool:    
+        rows = curr_dict['rows']
+        cols = curr_dict['cols']
+        diag_m = curr_dict['diag_m']
+        diag_e = curr_dict['diag_e']
+
+        if  i in rows or \
+            j in cols or \
+            i - j in diag_m or \
+            i + j in diag_e \
+        : 
+            return False
+        else:
+            return True
+
+
+    def solveNQueens(self, n : int) -> List[List[str]]:
+        out = []
+        t = [['.'] * n for _ in range(n)]
+        curr_dict = {
+            'rows' : [],
+            'cols' : [],
+            'diag_m' : [],
+            'diag_e' : []
+        }
+
+        def dfs(depth : int, queen_count : int):
+            if queen_count == n:
+                # print(t)
+                out.append([''.join(s) for s in t])
+                return
+
+            if depth == n * n:
+                return
+
+            i = depth // n
+            j = depth % n
+
+            t[i][j] = 'Q'
+            if self.valid(curr_dict, i, j):
+                curr_dict['rows'].append(i)
+                curr_dict['cols'].append(j)
+                curr_dict['diag_m'].append(i - j)
+                curr_dict['diag_e'].append(i + j)
+
+                dfs(depth + 1, queen_count + 1)
+            
+                curr_dict['rows'].pop()
+                curr_dict['cols'].pop()
+                curr_dict['diag_m'].pop()
+                curr_dict['diag_e'].pop()
+
+            t[i][j] = '.'
+            dfs(depth + 1, queen_count)
+            
+        dfs(0, 0)
+        return out
+```
+
+喜提通过，但是。。
+
+![超长时间的通过](9c280d0e1bc07a9976d42d2a4df86cb.png)
+
+分析：在上面的做法中，放置皇后是每一格都尝试放置一次。然而，放了这一行，就可以跳到下一行了。
+
+### 看了两次提示的解
+
+```python
+class Solution:
+    def valid(self, curr_dict : dict, i : int, j : int) -> bool:    
+        cols = curr_dict['cols']
+        diag_m = curr_dict['diag_m']
+        diag_e = curr_dict['diag_e']
+
+        if  j in cols or \
+            i - j in diag_m or \
+            i + j in diag_e \
+        : 
+            return False
+        else:
+            return True
+
+
+    def solveNQueens(self, n : int) -> List[List[str]]:
+        out = []
+        t = [['.'] * n for _ in range(n)]
+        curr_dict = {
+            'cols' : [],
+            'diag_m' : [],
+            'diag_e' : []
+        }
+
+        def dfs(row : int, queen_count : int):
+            if queen_count == n:
+                # print(t)
+                out.append([''.join(s) for s in t])
+                return
+
+            if row == n:
+                return
+
+            for j in range(n):
+                i = row
+                
+                if self.valid(curr_dict, i, j):
+                    t[i][j] = 'Q'
+                    curr_dict['cols'].append(j)
+                    curr_dict['diag_m'].append(i - j)
+                    curr_dict['diag_e'].append(i + j)
+
+                    dfs(row + 1, queen_count + 1)
+                
+                    curr_dict['cols'].pop()
+                    curr_dict['diag_m'].pop()
+                    curr_dict['diag_e'].pop()
+
+                    t[i][j] = '.'
+            
+        dfs(0, 0)
+        return out
+```
+
+再优化一下，因为 `set()` 可以 $O(\log n)$ 地增删查，因而
+
+```python
+class Solution:
+    def valid(self, curr_dict : dict, i : int, j : int) -> bool:    
+        cols = curr_dict['cols']
+        diag_m = curr_dict['diag_m']
+        diag_e = curr_dict['diag_e']
+
+        if  j in cols or \
+            i - j in diag_m or \
+            i + j in diag_e \
+        : 
+            return False
+        else:
+            return True
+
+
+    def solveNQueens(self, n : int) -> List[List[str]]:
+        out = []
+        t = [['.'] * n for _ in range(n)]
+        curr_dict = {
+            'cols' : set(),
+            'diag_m' : set(),
+            'diag_e' : set()
+        }
+
+        def dfs(row : int, queen_count : int):
+            if queen_count == n:
+                # print(t)
+                out.append([''.join(s) for s in t])
+                return
+
+            if row == n:
+                return
+
+            for j in range(n):
+                i = row
+                
+                if self.valid(curr_dict, i, j):
+                    t[i][j] = 'Q'
+                    curr_dict['cols'].add(j)
+                    curr_dict['diag_m'].add(i - j)
+                    curr_dict['diag_e'].add(i + j)
+
+                    dfs(row + 1, queen_count + 1)
+                
+                    curr_dict['cols'].remove(j)
+                    curr_dict['diag_m'].remove(i - j)
+                    curr_dict['diag_e'].remove(i + j)
+
+                    t[i][j] = '.'
+            
+        dfs(0, 0)
+        return out
+```
+
+时间复杂度 $O(n!)$，空间复杂度 $O(n)$.
+
+### 官方最优解
+
+使用位运算可以是空间复杂度进一步降低到 $O(1)$.
