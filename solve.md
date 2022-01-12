@@ -577,3 +577,5 @@ bool increasingTriplet(int* nums, int numsSize)
     return 0;
 }
 ```
+
+时间复杂度 $O(n)$，空间复杂度 $O(1)$.
