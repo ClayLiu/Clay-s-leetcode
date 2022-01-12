@@ -309,7 +309,7 @@ struct ListNode* mergeKLists(struct ListNode** lists, int listsSize)
 
 **提示：**
 
-* 0 <= s.length <= 3 * 104
+* 0 <= s.length <= 3 * $10^4$
 * s[i] 为 '(' 或 ')'
 
 ### 官方解
@@ -470,3 +470,110 @@ class Solution:
 ```
 
 时间复杂度 $O(n^3)$，空间复杂度 $O(n)$.
+
+## 334. 递增的三元子序列
+### 题目原文
+
+难度：<font color = 'orange'>中等</font>
+
+给你一个整数数组 `nums` ，判断这个数组中是否存在长度为 3 的递增子序列。
+
+如果存在这样的三元组下标 `(i, j, k)` 且满足 `i < j < k` ，使得 `nums[i] < nums[j] < nums[k]` ，返回 `true` ；否则，返回 `false` 。
+
+**示例 1：**
+```
+输入：nums = [1,2,3,4,5]
+输出：true
+解释：任何 i < j < k 的三元组都满足题意
+```
+**示例 2：**
+```
+输入：nums = [5,4,3,2,1]
+输出：false
+解释：不存在满足题意的三元组
+```
+**示例 3：**
+```
+输入：nums = [2,1,5,0,4,6]
+输出：true
+解释：三元组 (3, 4, 5) 满足题意，因为 nums[3] == 0 < nums[4] == 4 < nums[5] == 6
+```
+
+**提示：**
+
+* 1 <= nums.length <= 5 * $10^5$
+* -$2^{31}$ <= nums[i] <= $2^{31}$ - 1
+
+### 我的解（看了提示之后的解）
+
+使用两个数组 `left_min`, `right_max` 分别表示左右前缀（后缀）最小值（最大值）。
+
+`left_min[i]` 表示在 `nums[0:i]` （左右闭区间）中的最小值。
+`right_max[i]` 表示在 `nums[i:n - 1]` （左右闭区间）中的最大值。
+
+那么如果 `left_min[i] < nums[i] < right_max[i]`，即证明存在。
+
+综上得代码：
+
+```c
+#define min(x, y) ((x) < (y) ? (x) : (y))
+#define max(x, y) ((x) > (y) ? (x) : (y))
+
+bool increasingTriplet(int* nums, int numsSize)
+{
+    int i;
+    bool flag = 0;
+    int* left_min = malloc(sizeof(int) * numsSize);
+    int* right_max = malloc(sizeof(int) * numsSize);
+
+    left_min[0] = nums[0];
+    for(i = 1; i < numsSize; i++)
+        left_min[i] = min(left_min[i - 1], nums[i]);
+    
+    right_max[numsSize - 1] = nums[numsSize - 1];
+    for(i = numsSize - 2; i >= 0; i--)
+        right_max[i] = max(right_max[i + 1], nums[i]);
+
+    for(i = 1; i < numsSize - 1; i++)
+        if(left_min[i] < nums[i] && nums[i] < right_max[i])
+        {
+            flag = 1;
+            break;
+        }
+    
+    free(left_min);
+    free(right_max);
+
+    return flag;
+}
+```
+
+时间复杂度 $O(n)$，空间复杂度 $O(n)$.
+
+### 优化
+
+可以采用贪心的策略。使用 `first` 保存当前碰到的最小元素，`second` 保存当前碰到的第二小元素。
+
+代码：
+```c
+bool increasingTriplet(int* nums, int numsSize)
+{
+    int i;
+    int first, second;
+
+    first = nums[0];
+    second = INT_MAX;
+
+    for(i = 1; i < numsSize; i++)
+    {
+        if(nums[i] > second)        // first < second < nums[i], found it!
+            return 1;
+        else if(nums[i] > first)    // first < nums[i] <= second, contain first < second < anything.
+            second = nums[i];
+        else                        // nums[i] <= first < second, contain first < second < anything.
+            first = nums[i];    
+    }
+
+    return 0;
+}
+```
