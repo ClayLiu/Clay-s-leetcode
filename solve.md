@@ -929,8 +929,8 @@ class Solution:
 
 **提示:**
 
-* 1 <= nums1.length, nums2.length <= 105
-* -109 <= nums1[i], nums2[i] <= 109
+* 1 <= nums1.length, nums2.length <= 10^5
+* -10^9 <= nums1[i], nums2[i] <= 10^9
 * nums1 和 nums2 均为升序排列
 * 1 <= k <= 1000
 
