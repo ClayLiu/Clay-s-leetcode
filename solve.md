@@ -1175,8 +1175,6 @@ int countVowelPermutation(int n)
 
 <font color = 'green'> 中等 </font> 吧
 
-#### 法一
-
 排序，输出最小间隔完事。不过注意隔天的时间。
 
 
@@ -1202,7 +1200,7 @@ class Solution:
 ```
 时间复杂度 $O(n\log n)$，空间复杂度 $O(n)$ 因为搞了个 `mins` 数组。
 
-##### 优化 1
+#### 优化 1
 
 **鸽巢原理。**
 
@@ -1234,7 +1232,7 @@ class Solution:
 ```
 时间复杂度 $O(\min(1440, n) \log \min(1440, n))$，空间复杂度 $O(\min(1440, n))$ （或者说 $O(1)$，如果直接把 mins 的长度固定为 1440）。
 
-##### 优化 2
+#### 优化 2
 
 因为只有 1440 个时间点，上~~计数排序~~ 计数就好啦。
 
@@ -1300,3 +1298,4 @@ int findMinDifference(char ** timePoints, int timePointsSize)
 时间复杂度 $O(\min(n, 1440))$，空间复杂度 $O(1)$.
 
 其实按照大 O 记法，运用鸽巢原理后，时间复杂度都是 $O(1)$. 官方解这里是符号的滥用。
+
