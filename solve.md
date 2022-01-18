@@ -1147,3 +1147,156 @@ int countVowelPermutation(int n)
 解法二，矩阵快速幂。
 
 时间复杂度 $O(\log n)$，空间复杂度 $O(1)$.
+
+## 539. 最小时间差
+### 题目原文
+难度：<font color = 'orange'> 中等 </font>
+
+给定一个 24 小时制（小时:分钟 "HH:MM"）的时间列表，找出列表中任意两个时间的最小时间差并以分钟数表示。
+
+**示例 1：**
+```
+输入：timePoints = ["23:59","00:00"]
+输出：1
+```
+**示例 2：**
+```
+输入：timePoints = ["00:00","23:59","00:00"]
+输出：0
+```
+
+**提示：**
+* 2 <= timePoints <= 2 * 10^4
+* timePoints[i] 格式为 "HH:MM"
+
+### 解
+
+这题都能上中等？
+
+<font color = 'green'> 中等 </font> 吧
+
+#### 法一
+
+排序，输出最小间隔完事。不过注意隔天的时间。
+
+
+```python
+class Solution:
+    def findMinDifference(self, timePoints : List[str]) -> int:
+        mins = []
+        for single_time in timePoints:
+            h_str, m_str = single_time.split(':')
+            h = int(h_str)
+            m = int(m_str)
+
+            mins.append(h * 60 + m)
+        
+        min_diff = 24 * 60 + 1
+        mins.sort()
+
+        for i in range(1, len(mins)):
+            min_diff = min(min_diff, mins[i] - mins[i - 1])
+        
+        min_diff = min(min_diff, 24 * 60 - (mins[-1] - mins[0]))    # 隔天的时间
+        return min_diff
+```
+时间复杂度 $O(n\log n)$，空间复杂度 $O(n)$ 因为搞了个 `mins` 数组。
+
+##### 优化 1
+
+**鸽巢原理。**
+
+因为只有 24 * 60 = 1440 个时间点，所以如果时间点的总数超过 1440 肯定有重复的时间点，直接输出 0。
+
+```python
+class Solution:
+    def findMinDifference(self, timePoints : List[str]) -> int:
+        n = len(timePoints)
+        if n > 1440:    # 溜了
+            return 0
+        
+        mins = []
+        for single_time in timePoints:
+            h_str, m_str = single_time.split(':')
+            h = int(h_str)
+            m = int(m_str)
+
+            mins.append(h * 60 + m)
+        
+        min_diff = 24 * 60 + 1
+        mins.sort()
+
+        for i in range(1, n):
+            min_diff = min(min_diff, mins[i] - mins[i - 1])
+        
+        min_diff = min(min_diff, 24 * 60 - (mins[-1] - mins[0]))
+        return min_diff
+```
+时间复杂度 $O(\min(1440, n) \log \min(1440, n))$，空间复杂度 $O(\min(1440, n))$ （或者说 $O(1)$，如果直接把 mins 的长度固定为 1440）。
+
+##### 优化 2
+
+因为只有 1440 个时间点，上~~计数排序~~ 计数就好啦。
+
+```c
+const int max_times_size = 24 * 60;
+#define get_char_value(x) (x - '0')
+
+int to_timestamp(char* time_point)
+{
+    return  get_char_value(time_point[0]) * 10 * 60 + 
+            get_char_value(time_point[1]) * 60 + 
+            get_char_value(time_point[3]) * 10 + 
+            get_char_value(time_point[4]);
+}
+
+int findMinDifference(char ** timePoints, int timePointsSize)
+{
+    int i, j, timestamp;
+    int curr_diff;
+    int min_diff = max_times_size;
+    char times[max_times_size];
+    
+    if(timePointsSize > max_times_size)
+        return 0;
+
+    for(i = 0; i < max_times_size; i++)
+        times[i] = 0;
+
+    for(i = 0; i < timePointsSize; i++)
+    {
+        timestamp = to_timestamp(timePoints[i]);
+        if(times[timestamp])
+            return 0;
+        else
+            times[timestamp] = 1;
+    }
+    
+    i = 0;
+    while(!times[i]) 
+        i++;
+    
+    for(j = i + 1; j < max_times_size; j++)
+        if(times[j])
+        {
+            curr_diff = j - i;
+            min_diff = curr_diff < min_diff ? curr_diff : min_diff;
+            i = j;
+        }
+    
+    i = 0;
+    while(!times[i]) 
+        i++;
+    
+    j--;
+    while(!times[j])
+        j--;
+    
+    curr_diff = max_times_size - j + i;
+    min_diff = curr_diff < min_diff ? curr_diff : min_diff;
+    return min_diff;
+}
+```
+时间复杂度 $O(\min(n, 1440))$，空间复杂度 $O(1)$.
+
+其实按照大 O 记法，运用鸽巢原理后，时间复杂度都是 $O(1)$. 官方解这里是符号的滥用。
